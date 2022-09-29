@@ -1,0 +1,202 @@
+1)Usage of len in {}:
+%{
+#include<stdio.h>
+%}
+string [(a|b)]{4}[a]
+%%
+{string}	printf("String accepted");
+.* printf("String not accepted");
+%%
+
+void main(){
+	yylex();
+}
+int yyerror(){
+	return 1;
+}
+int yywrap(){
+	return 1;
+}
+
+
+2)Replacing char in files:
+%{
+#include<stdio.h>
+#include<string.h>
+%}
+%%
+[S]    {fprintf(yyout, "%s", "W");}
+[s]    {fprintf(yyout, "%s", "w");}
+.      {fprintf(yyout, "%s", yytext);}
+%%
+void main()
+{
+    extern FILE *yyin, *yyout;
+    yyin=fopen("input.txt", "r");
+    yyout=fopen("output.txt", "w");
+    yylex();
+}
+int yyerror()
+{
+    return 1;
+}
+int yywrap()
+{
+    return 1;
+}
+
+
+3)Infix/Prefix/Postfix:
+%{
+#include<stdio.h>
+%}
+infix [a-zA-Z]+[()a-zA-Z+/*]+[a-zA-Z)]+
+prefix [+*/]+[a-zA-Z+*/]+[a-zA-Z]+
+postfix [a-zA-Z]+[a-zA-Z+*/]+[+*/]+
+%%
+{infix} {fprintf(yyout, "\n%s -- Infix expression", yytext);}
+{prefix} {fprintf(yyout, "\n%s -- Prefix expression", yytext);}
+{postfix} {fprintf(yyout, "\n%s -- Postfix expression", yytext);}
+.* {fprintf(yyout, "\n%s -- Not a category of the three mentioned expressions", yytext);}
+%%
+
+void main(){
+	extern FILE *yyin, *yyout;
+	yyin = fopen("input2.txt", "r");
+	yyout = fopen("output2.txt", "w");
+	yylex();
+}
+int yyerror(){
+	return 1;
+}
+int yywrap(){
+	return 1;
+}
+
+
+4)IMEI:
+%{
+#include<stdio.h>
+#include<string.h>
+int i = 0,index = 1;
+int sum = 0,temp = 0;
+%}
+first [0-9]{2}
+number 516604|292908|469904|015420
+random [0-9]{6}
+temp [0-9]
+%%
+{first}-{number}-{random}-{temp} {check(yytext);}
+.* printf("String not accepted");
+%%
+void check(char *str){
+while(i<17){
+if(str[i]=='-'){
+i++;
+continue;}
+if(index%2){
+sum+=str[i]-48;
+}
+else{
+temp=(str[i]-48)*2;
+if(temp>0){
+while(temp){
+sum+=temp%10;
+temp/=10;
+}
+}
+}
+index+=1;
+i++;
+}
+if(((sum+str[17]-48)%10)==0)printf("IMEI number is valid");
+else printf("IMEI number is not valid");
+}
+void main()
+{
+yylex();
+}
+int yyerror()
+{
+return 1;
+}
+int yywrap()
+{
+return 1;
+}
+
+
+5)vowel:
+%{
+#include<stdio.h>
+#include<string.h>
+int n;
+%}
+normal [a-z]
+temp a|e|i|o|u
+%%
+{normal}{temp}{normal}* {test(yytext);}
+.* {fprintf(yyout,"String not accepted");}
+%%
+void test(char *str){
+    n=strlen(str);
+    if(str[1]==str[n-1]){
+        fprintf(yyout,"String valid");
+    }
+    else{
+        fprintf(yyout,"Not valid");
+    }            
+}
+void main(){
+    extern FILE *yyin, *yyout;
+    yyin=fopen("vowel-ip.txt","r");
+    yyout=fopen("vowel-op.txt","w");
+    yylex();
+}
+int yyerror(){
+    return 1;
+}
+int yywrap(){
+    return 1;
+}
+
+
+6)C-DFA:
+#include <stdio.h>
+#include <string.h>
+int construct(int q[20][2],int n){
+char ip[100];
+printf("\nEnter the regular expression: ");
+scanf("%s",ip);
+int i=0,s=0,len=strlen(ip);
+while(i<len){
+s=q[s][ip[i]-97]-1;
+i++;
+}
+if(s==n-1){
+printf("The given string is parsed successfully\n");
+}else{
+printf("The given string cannot be parsed\n");
+}
+}
+void DFA(){
+int n,f,j=2;
+printf("Enter the number of states: ");
+scanf("%d",&n);
+printf("Enter the final state: q");
+scanf("%d",&f);
+printf("\n");
+int q[n][j],i,k;
+for(i=0;i<n;i++){
+for (k=0;k<j;k++){
+printf("Transition state of state q%d for input %c :q",i+1,k+97);
+scanf("%d",&q[i][k]);
+}
+}
+while(1){
+construct(q,f);
+}
+}
+int main(){
+DFA();
+}
